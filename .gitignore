@@ -1,15 +1,26 @@
-*.iml
+# Archivos de compilación y caché de Android Studio
 .gradle
+/build
+/captures
+.externalNativeBuild
+.cxx
+
+# Configuraciones locales y del IDE (Android Studio / IntelliJ)
+*.iml
+local.properties
 /local.properties
+.idea/
 /.idea/caches
 /.idea/libraries
 /.idea/modules.xml
 /.idea/workspace.xml
 /.idea/navEditor.xml
 /.idea/assetWizardSettings.xml
+
+# Kotlin y reportes de errores de Java (¡Los que se colaron!)
+.kotlin/
+*.log
+
+# Archivos del sistema operativo
 .DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
-local.properties
+Thumbs.db
