@@ -20,17 +20,36 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
-// Colores personalizados basados en la imagen
-val BgColor = Color(0xFF0A0A0A)
-val CardColor = Color(0xFF121212)
-val AccentCyan = Color(0xFF4DD0E1)
-val AccentPurple = Color(0xFF6A1B9A)
-val TextGray = Color(0xFF9E9E9E)
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.vistasproyecto.ui.viewmodel.UsuariosViewModel
 
 @Composable
-fun VortexTerminalScreen() {
+fun VortexTerminalScreen(
+    viewModel: UsuariosViewModel = viewModel()
+) {
     var isLogin by remember { mutableStateOf(true) }
+    val isLoading by viewModel.isLoading.collectAsState()
+    val error by viewModel.error.collectAsState()
+    val currentUser by viewModel.currentUser.collectAsState()
+
+    var identifier by remember { mutableStateOf("") }
+    var accessKey by remember { mutableStateOf("") }
+    var username by remember { mutableStateOf("") }
+
+    if (currentUser != null) {
+        Column(
+            modifier = Modifier.fillMaxSize().background(BgColor),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text("Welcome, ${currentUser?.usuario}!", color = Color.White, fontSize = 24.sp)
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(onClick = { viewModel.logout() }, colors = ButtonDefaults.buttonColors(containerColor = AccentPurple)) {
+                Text("DISCONNECT")
+            }
+        }
+        return
+    }
 
     LazyColumn(
         modifier = Modifier
@@ -44,10 +63,8 @@ fun VortexTerminalScreen() {
         contentPadding = PaddingValues(24.dp)
     ) {
         item {
-            // Reduced spacer because of TopAppBar
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Header
             Text(
                 text = "VORTEX",
                 color = Color.White,
@@ -68,7 +85,6 @@ fun VortexTerminalScreen() {
         }
 
         item {
-            // Login/Register Card
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -109,8 +125,34 @@ fun VortexTerminalScreen() {
 
                     Spacer(modifier = Modifier.height(32.dp))
 
-                    // Identifier Field
-                    var identifier by remember { mutableStateOf("") }
+                    if (error != null) {
+                        Text(error!!, color = Color.Red, fontSize = 12.sp)
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
+
+                    if (!isLogin) {
+                        Text(
+                            text = "USERNAME",
+                            color = TextGray,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        VortexTextField(
+                            value = username,
+                            onValueChange = { username = it },
+                            placeholder = "Xenon_Hunter",
+                            trailingIcon = {
+                                Icon(
+                                    Icons.Default.Person,
+                                    contentDescription = null,
+                                    tint = TextGray
+                                )
+                            }
+                        )
+                        Spacer(modifier = Modifier.height(24.dp))
+                    }
+
                     Text(
                         text = "IDENTIFIER",
                         color = TextGray,
@@ -133,28 +175,12 @@ fun VortexTerminalScreen() {
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    // Access Key Field
-                    var accessKey by remember { mutableStateOf("") }
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "ACCESS KEY",
-                            color = TextGray,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                        if (isLogin) {
-                            Text(
-                                text = "LOST ACCESS?",
-                                color = TextGray,
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                    }
+                    Text(
+                        text = "ACCESS KEY",
+                        color = TextGray,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold
+                    )
                     Spacer(modifier = Modifier.height(8.dp))
                     VortexTextField(
                         value = accessKey,
@@ -170,60 +196,43 @@ fun VortexTerminalScreen() {
                         }
                     )
 
-                    if (!isLogin) {
-                        Spacer(modifier = Modifier.height(24.dp))
-                        // Confirm Access Key Field
-                        var confirmKey by remember { mutableStateOf("") }
-                        Text(
-                            text = "CONFIRM ACCESS KEY",
-                            color = TextGray,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        VortexTextField(
-                            value = confirmKey,
-                            onValueChange = { confirmKey = it },
-                            placeholder = "********",
-                            visualTransformation = PasswordVisualTransformation(),
-                            trailingIcon = {
-                                Icon(
-                                    Icons.Default.Lock,
-                                    contentDescription = null,
-                                    tint = TextGray
-                                )
-                            }
-                        )
-                    }
-
                     Spacer(modifier = Modifier.height(32.dp))
 
-                    // Action Button
                     Button(
-                        onClick = { /* Handle action */ },
+                        onClick = { 
+                            if (isLogin) {
+                                viewModel.login(identifier, accessKey, onSuccess = {})
+                            } else {
+                                viewModel.registrarUsuario(username, identifier, accessKey, onSuccess = {})
+                            }
+                        },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(56.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = AccentPurple),
-                        shape = RoundedCornerShape(8.dp)
+                        shape = RoundedCornerShape(8.dp),
+                        enabled = !isLoading
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                text = if (isLogin) "ESTABLISH CONNECTION" else "INITIALIZE REGISTRATION",
-                                fontWeight = FontWeight.Bold,
-                                letterSpacing = 1.sp
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Icon(
-                                if (isLogin) Icons.Default.Login else Icons.Default.VideogameAsset,
-                                contentDescription = null
-                            )
+                        if (isLoading) {
+                            CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                        } else {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = if (isLogin) "ESTABLISH CONNECTION" else "INITIALIZE REGISTRATION",
+                                    fontWeight = FontWeight.Bold,
+                                    letterSpacing = 1.sp
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Icon(
+                                    if (isLogin) Icons.Default.Login else Icons.Default.VideogameAsset,
+                                    contentDescription = null
+                                )
+                            }
                         }
                     }
 
                     Spacer(modifier = Modifier.height(32.dp))
 
-                    // Footer toggle INSIDE the card
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.Center,
@@ -284,25 +293,4 @@ fun VortexTextField(
         ),
         shape = RoundedCornerShape(8.dp)
     )
-}
-
-@Composable
-fun ExternalNodeButton(text: String, icon: androidx.compose.ui.graphics.vector.ImageVector, modifier: Modifier = Modifier) {
-    OutlinedButton(
-        onClick = { },
-        modifier = modifier.height(48.dp),
-        shape = RoundedCornerShape(8.dp),
-        border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.1f)),
-        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)
-    ) {
-        Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp))
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(text = text, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-    }
-}
-
-@Preview
-@Composable
-fun VortexTerminalPreview() {
-    VortexTerminalScreen()
 }
