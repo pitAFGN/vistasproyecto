@@ -21,6 +21,9 @@ class UsuariosViewModel : ViewModel() {
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
 
+    private val _currentUser = MutableStateFlow<User?>(null)
+    val currentUser: StateFlow<User?> = _currentUser
+
     init {
         fetchUsuarios()
     }
@@ -40,8 +43,28 @@ class UsuariosViewModel : ViewModel() {
         }
     }
 
-    // Utilizado para el Formulario de Registro en Vortex
-    fun registrarUsuario(usuario: String, email: String, contrasena: String) {
+    fun login(email: String, contrasena: String, onSuccess: () -> Unit) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                val users = repository.getUserByEmail(email)
+                val user = users.firstOrNull()
+                if (user != null && user.contrasena == contrasena) {
+                    _currentUser.value = user
+                    _error.value = null
+                    onSuccess()
+                } else {
+                    _error.value = "Invalid credentials"
+                }
+            } catch (e: Exception) {
+                _error.value = e.message
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun registrarUsuario(usuario: String, email: String, contrasena: String, onSuccess: () -> Unit) {
         viewModelScope.launch {
             _isLoading.value = true
             try {
@@ -51,13 +74,19 @@ class UsuariosViewModel : ViewModel() {
                     contrasena = contrasena,
                     puntosXp = 0
                 )
-                repository.createUser(nuevoUsuario)
+                val createdUser = repository.createUser(nuevoUsuario)
+                _currentUser.value = createdUser
                 fetchUsuarios()
+                onSuccess()
             } catch (e: Exception) {
                 _error.value = e.message
             } finally {
                 _isLoading.value = false
             }
         }
+    }
+    
+    fun logout() {
+        _currentUser.value = null
     }
 }

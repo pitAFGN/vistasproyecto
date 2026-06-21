@@ -22,12 +22,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.vistasproyecto.ui.viewmodel.SolicitudesViewModel
+import com.example.vistasproyecto.ui.viewmodel.UsuariosViewModel
+import androidx.compose.runtime.collectAsState
 import java.util.Locale
 
 @Composable
 fun RegisterGamesScreen(
-    viewModel: SolicitudesViewModel = viewModel()
+    viewModel: SolicitudesViewModel = viewModel(),
+    usuariosViewModel: UsuariosViewModel = viewModel()
 ) {
+    val currentUser by usuariosViewModel.currentUser.collectAsState()
+    
     // Estados para los campos del formulario
     var gameTitle by remember { mutableStateOf("") }
     var selectedGenre by remember { mutableStateOf("") }
@@ -36,6 +41,17 @@ fun RegisterGamesScreen(
     var isGenreExpanded by remember { mutableStateOf(false) }
 
     val genres = listOf("Action RPG", "First Person Shooter", "Real-Time Strategy", "Simulation", "Survival Horror")
+
+    if (currentUser == null) {
+        Box(modifier = Modifier.fillMaxSize().background(BgColor), contentAlignment = Alignment.Center) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Icon(Icons.Default.Lock, contentDescription = null, tint = AccentCyan, modifier = Modifier.size(64.dp))
+                Spacer(modifier = Modifier.height(16.dp))
+                Text("Please login to submit requests", color = Color.White, fontSize = 18.sp)
+            }
+        }
+        return
+    }
 
     LazyColumn(
         modifier = Modifier
@@ -201,17 +217,22 @@ fun RegisterGamesScreen(
             Button(
                 onClick = { 
                     viewModel.addSolicitud(
-                        usuarioId = "1", // ID de usuario quemado por ahora o recuperado de sesión
+                        usuarioId = currentUser?.id ?: "unknown",
                         tituloJuego = gameTitle,
                         genero = selectedGenre,
                         anoLanzamiento = releaseYear,
                         descripcion = description
                     )
+                    // Clear fields after sending
+                    gameTitle = ""
+                    selectedGenre = ""
+                    releaseYear = ""
+                    description = ""
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
-                enabled = !isLoading,
+                enabled = !isLoading && gameTitle.isNotBlank() && selectedGenre.isNotBlank(),
                 colors = ButtonDefaults.buttonColors(containerColor = AccentPurple),
                 shape = RoundedCornerShape(12.dp),
                 contentPadding = PaddingValues()
