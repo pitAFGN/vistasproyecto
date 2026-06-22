@@ -51,9 +51,19 @@ class UsuariosViewModel : ViewModel() {
         viewModelScope.launch {
             _isLoading.value = true
             try {
+                // El correo es único: verificamos que no exista ya una cuenta con este email
+                val emailNormalizado = email.trim().lowercase()
+                val coincidencias = repository.getUserByEmail(emailNormalizado)
+                val yaExiste = coincidencias.any { it.email.trim().lowercase() == emailNormalizado }
+
+                if (yaExiste) {
+                    onError("Ya existe una cuenta registrada con ese correo.")
+                    return@launch
+                }
+
                 val nuevoUsuario = User(
                     usuario = usuario,
-                    email = email,
+                    email = email.trim(),
                     contrasena = contrasena,
                     puntosXp = 0
                 )
