@@ -24,6 +24,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.vistasproyecto.data.SessionManager
+import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.vistasproyecto.ui.viewmodel.UsuariosViewModel
 import com.example.vistasproyecto.ui.screens.AccentCyan
 import com.example.vistasproyecto.ui.screens.BgColor
 import com.example.vistasproyecto.ui.screens.CardColor
@@ -48,7 +51,9 @@ class MainActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainApp() {
+fun MainApp(
+    usuariosViewModel: UsuariosViewModel = viewModel()
+) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
@@ -96,6 +101,7 @@ fun MainApp() {
                 tonalElevation = 0.dp,
                 modifier = Modifier.height(70.dp)
             ) {
+                // HOME / TERMINAL
                 NavigationBarItem(
                     selected = currentRoute == "home",
                     onClick = {
@@ -135,6 +141,7 @@ fun MainApp() {
                     )
                 )
 
+                // ADD
                 NavigationBarItem(
                     selected = currentRoute == "add",
                     onClick = {
