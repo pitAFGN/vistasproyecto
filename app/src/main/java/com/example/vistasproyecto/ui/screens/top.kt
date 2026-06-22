@@ -139,7 +139,7 @@ fun FeaturedGameCard(
                     .clip(RoundedCornerShape(16.dp)),
                 contentScale = ContentScale.Crop
             )
-            
+
             // Overlay
             Box(
                 modifier = Modifier
@@ -153,7 +153,7 @@ fun FeaturedGameCard(
                         )
                     )
             )
-            
+
             // Rank Number
             Surface(
                 modifier = Modifier
@@ -170,7 +170,7 @@ fun FeaturedGameCard(
                     )
                 }
             }
-            
+
             // Content at bottom
             Column(
                 modifier = Modifier
@@ -232,7 +232,7 @@ fun GameListItem(juego: Juego, rank: Int) {
                 fontSize = 16.sp,
                 modifier = Modifier.width(32.dp)
             )
-            
+
             AsyncImage(
                 model = juego.imagenUrl,
                 contentDescription = null,
@@ -241,9 +241,9 @@ fun GameListItem(juego: Juego, rank: Int) {
                     .clip(RoundedCornerShape(8.dp)),
                 contentScale = ContentScale.Crop
             )
-            
+
             Spacer(modifier = Modifier.width(12.dp))
-            
+
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     juego.titulo,
@@ -259,7 +259,7 @@ fun GameListItem(juego: Juego, rank: Int) {
                     fontSize = 11.sp
                 )
             }
-            
+
             Column(horizontalAlignment = Alignment.End) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(

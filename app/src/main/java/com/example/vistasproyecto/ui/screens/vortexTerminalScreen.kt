@@ -1,6 +1,7 @@
 package com.example.vistasproyecto.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -50,6 +51,27 @@ fun VortexTerminalScreen(
     var username by remember { mutableStateOf("") }
     var statusMessage by remember { mutableStateOf<String?>(null) }
     var isSuccess by remember { mutableStateOf(false) }
+    var showRecoveryDialog by remember { mutableStateOf(false) }
+
+    if (showRecoveryDialog) {
+        AlertDialog(
+            onDismissRequest = { showRecoveryDialog = false },
+            containerColor = CardColor,
+            shape = RoundedCornerShape(16.dp),
+            title = { Text("Recuperar acceso", color = Color.White, fontWeight = FontWeight.Bold) },
+            text = {
+                Text(
+                    "Por ahora la recuperación automática no está disponible. Contacta a soporte o crea una nueva cuenta si perdiste tu clave de acceso.",
+                    color = TextGray, fontSize = 14.sp
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { showRecoveryDialog = false }) {
+                    Text("ENTENDIDO", color = AccentCyan, fontWeight = FontWeight.Bold)
+                }
+            }
+        )
+    }
 
     val isLoading by viewModel.isLoading.collectAsState()
 
@@ -156,7 +178,7 @@ fun VortexTerminalScreen(
                     }
 
                     // Campo IDENTIFIER
-                    Text("EMAIL", color = TextGray, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    Text("IDENTIFIER", color = TextGray, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                     Spacer(modifier = Modifier.height(8.dp))
                     VortexTextField(
                         value = identifier,
@@ -173,9 +195,15 @@ fun VortexTerminalScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("PASSWORD", color = TextGray, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        Text("ACCESS KEY", color = TextGray, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                         if (isLogin) {
-                            Text("LOST ACCESS?", color = TextGray, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                            Text(
+                                "LOST ACCESS?",
+                                color = AccentCyan,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.clickable { showRecoveryDialog = true }
+                            )
                         }
                     }
                     Spacer(modifier = Modifier.height(8.dp))
@@ -190,7 +218,7 @@ fun VortexTerminalScreen(
                     // Campo CONFIRM ACCESS KEY (solo en registro)
                     if (!isLogin) {
                         Spacer(modifier = Modifier.height(24.dp))
-                        Text("CONFIRM PASSWORD", color = TextGray, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        Text("CONFIRM ACCESS KEY", color = TextGray, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                         Spacer(modifier = Modifier.height(8.dp))
                         VortexTextField(
                             value = confirmKey,
@@ -286,7 +314,7 @@ fun VortexTerminalScreen(
                             modifier = Modifier.height(20.dp)
                         ) {
                             Text(
-                                text = if (isLogin) "REGISTER" else "LOGIN",
+                                text = if (isLogin) "REGISTER ACCOUNT" else "LOG IN",
                                 color = AccentCyan, fontSize = 14.sp, fontWeight = FontWeight.Bold
                             )
                         }
@@ -326,25 +354,6 @@ fun VortexTextField(
         ),
         shape = RoundedCornerShape(8.dp)
     )
-}
-
-@Composable
-fun ExternalNodeButton(
-    text: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    modifier: Modifier = Modifier
-) {
-    OutlinedButton(
-        onClick = { },
-        modifier = modifier.height(48.dp),
-        shape = RoundedCornerShape(8.dp),
-        border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.1f)),
-        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)
-    ) {
-        Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp))
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(text = text, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-    }
 }
 
 @Preview
