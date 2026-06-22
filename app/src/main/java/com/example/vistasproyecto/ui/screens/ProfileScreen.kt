@@ -14,6 +14,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -22,6 +25,9 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import com.example.vistasproyecto.R
 import com.example.vistasproyecto.data.SessionManager
 import com.example.vistasproyecto.ui.viewmodel.UsuariosViewModel
 
@@ -175,7 +181,35 @@ fun ProfileScreen(
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                // Botón de cerrar sesión — sutil, temático
+                if (currentUser?.id == "user_01") {
+                    Button(
+                        onClick = { navController.navigate("admin_panel") },
+                        shape = RoundedCornerShape(10.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = AccentPurple,
+                            contentColor = Color.White
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 12.dp),
+                        contentPadding = PaddingValues(vertical = 10.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.AdminPanelSettings,
+                            contentDescription = "Panel de Control",
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "ADMIN PANEL",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 1.2.sp
+                        )
+                    }
+                }
+
+                // Botón de cerrar sesión
                 OutlinedButton(
                     onClick = { showLogoutDialog = true },
                     shape = RoundedCornerShape(10.dp),
@@ -187,6 +221,7 @@ fun ProfileScreen(
                         contentColor = Color(0xFFEF5350).copy(alpha = 0.85f),
                         containerColor = Color(0xFFEF5350).copy(alpha = 0.06f)
                     ),
+                    modifier = Modifier.fillMaxWidth(),
                     contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp)
                 ) {
                     Icon(
@@ -273,11 +308,16 @@ fun FavoriteGameCard() {
                     .weight(1f)
                     .background(Color(0xFF1A1A1A))
             ) {
-                Icon(
-                    Icons.Default.Gamepad,
-                    contentDescription = null,
-                    modifier = Modifier.align(Alignment.Center).size(48.dp),
-                    tint = Color.White.copy(alpha = 0.1f)
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data("https://tenor.com/search/sahur-gifs")
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = "Portada de Juego",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop,
+                    placeholder = painterResource(id = R.drawable.sahur),
+                    error = painterResource(id = R.drawable.sahur)
                 )
             }
             Row(

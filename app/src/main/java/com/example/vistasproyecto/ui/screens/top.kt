@@ -137,7 +137,9 @@ fun FeaturedGameCard(
                     .fillMaxSize()
                     .padding(8.dp)
                     .clip(RoundedCornerShape(16.dp)),
-                contentScale = ContentScale.Crop
+                contentScale = ContentScale.Crop,
+                placeholder = androidx.compose.ui.res.painterResource(android.R.drawable.ic_menu_gallery),
+                error = androidx.compose.ui.res.painterResource(android.R.drawable.stat_notify_error)
             )
             
             // Overlay
@@ -239,7 +241,9 @@ fun GameListItem(juego: Juego, rank: Int) {
                 modifier = Modifier
                     .size(56.dp)
                     .clip(RoundedCornerShape(8.dp)),
-                contentScale = ContentScale.Crop
+                contentScale = ContentScale.Crop,
+                placeholder = androidx.compose.ui.res.painterResource(android.R.drawable.ic_menu_gallery),
+                error = androidx.compose.ui.res.painterResource(android.R.drawable.stat_notify_error)
             )
             
             Spacer(modifier = Modifier.width(12.dp))

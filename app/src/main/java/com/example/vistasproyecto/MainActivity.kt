@@ -35,6 +35,7 @@ import com.example.vistasproyecto.ui.screens.VortexTerminalScreen
 import com.example.vistasproyecto.ui.screens.VortexFeedScreen
 import com.example.vistasproyecto.ui.screens.TopGamesScreen
 import com.example.vistasproyecto.ui.screens.RegisterGamesScreen
+import com.example.vistasproyecto.ui.screens.AdminPanelScreen
 import com.example.vistasproyecto.ui.theme.VistasProyectoTheme
 
 class MainActivity : ComponentActivity() {
@@ -217,6 +218,9 @@ fun MainApp(
             }
             composable("profile") {
                 ProfileScreen(navController = navController)
+            }
+            composable("admin_panel") {
+                AdminPanelScreen(navController = navController)
             }
         }
     }

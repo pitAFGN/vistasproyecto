@@ -28,10 +28,12 @@ fun RegisterGamesScreen(
 ) {
     val currentUser by SessionManager.currentUser.collectAsState()
 
+    // Estados para los campos del formulario
     var gameTitle by remember { mutableStateOf("") }
     var selectedGenre by remember { mutableStateOf("") }
     var releaseYear by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
+    var imageUrl by remember { mutableStateOf("") } // Implementado de la versión 1
     var isGenreExpanded by remember { mutableStateOf(false) }
     var statusMessage by remember { mutableStateOf<String?>(null) }
     var isSuccess by remember { mutableStateOf(false) }
@@ -40,11 +42,16 @@ fun RegisterGamesScreen(
     val success by viewModel.success.collectAsState()
     val error by viewModel.error.collectAsState()
 
+    // Manejo de éxito: limpia los campos incluyendo la URL de la imagen
     LaunchedEffect(success) {
         if (success) {
             statusMessage = "¡Solicitud enviada! Será revisada en 24h."
             isSuccess = true
-            gameTitle = ""; selectedGenre = ""; releaseYear = ""; description = ""
+            gameTitle = ""
+            selectedGenre = ""
+            releaseYear = ""
+            description = ""
+            imageUrl = "" // Se limpia al completarse con éxito
             viewModel.clearSuccess()
         }
     }
@@ -73,7 +80,7 @@ fun RegisterGamesScreen(
                     "Contribute to the Vortex database by submitting a new title for verification.",
                     fontSize = 14.sp, color = TextGray
                 )
-                // Mostrar quién está enviando la solicitud
+                // Mostrar quién está enviando la solicitud con SessionManager
                 if (currentUser != null) {
                     Spacer(modifier = Modifier.height(6.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -101,7 +108,7 @@ fun RegisterGamesScreen(
             }
         }
 
-        // Banner de estado
+        // Banner de estado dinámico
         item {
             statusMessage?.let { msg ->
                 Box(
@@ -128,6 +135,7 @@ fun RegisterGamesScreen(
         }
 
         item {
+            // Form Container unificado
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -196,6 +204,15 @@ fun RegisterGamesScreen(
                     }
                 }
 
+                // COVER ART URL (Aquí se inyectó el componente funcional reemplazando el viejo upload estático)
+                VortexInputField(
+                    label = "COVER ART URL",
+                    value = imageUrl,
+                    onValueChange = { imageUrl = it },
+                    placeholder = "https://example.com/image.jpg"
+                )
+
+                // DESCRIPTION
                 VortexInputField(
                     label = "DESCRIPTION",
                     value = description,
@@ -209,32 +226,7 @@ fun RegisterGamesScreen(
         }
 
         item {
-            // Upload cover art (placeholder visual)
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(140.dp)
-                    .background(CardColor, RoundedCornerShape(16.dp))
-                    .border(1.5.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(16.dp))
-                    .clickable { },
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(44.dp)
-                        .background(AccentCyan.copy(alpha = 0.1f), RoundedCornerShape(22.dp)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(Icons.Default.AddAPhoto, contentDescription = "Upload", tint = AccentCyan, modifier = Modifier.size(20.dp))
-                }
-                Spacer(modifier = Modifier.height(12.dp))
-                Text("Upload Cover Art", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Medium)
-                Text("JPG, PNG up to 10MB", color = TextGray, fontSize = 11.sp)
-            }
-        }
-
-        item {
+            // Botón de Envío con validación de datos integrada para la URL de la imagen
             Button(
                 onClick = {
                     statusMessage = null
@@ -242,9 +234,9 @@ fun RegisterGamesScreen(
                         gameTitle.isBlank() -> { statusMessage = "El título del juego no puede estar vacío."; isSuccess = false }
                         selectedGenre.isEmpty() -> { statusMessage = "Debes seleccionar un género."; isSuccess = false }
                         releaseYear.isBlank() || releaseYear.length != 4 -> { statusMessage = "El año de lanzamiento debe tener 4 dígitos."; isSuccess = false }
+                        imageUrl.isBlank() -> { statusMessage = "La URL de la imagen de portada es obligatoria."; isSuccess = false }
                         description.isBlank() -> { statusMessage = "La descripción no puede estar vacía."; isSuccess = false }
                         else -> {
-                            // Usar el ID real del usuario logueado, o "guest" si no hay sesión
                             val userId = currentUser?.id ?: "guest"
                             viewModel.addSolicitud(
                                 usuarioId = userId,
@@ -252,6 +244,7 @@ fun RegisterGamesScreen(
                                 genero = selectedGenre,
                                 anoLanzamiento = releaseYear,
                                 descripcion = description,
+                                imagenUrl = imageUrl, // Parámetro mapeado correctamente
                                 onError = { msg -> statusMessage = "Error: $msg"; isSuccess = false }
                             )
                         }
@@ -280,6 +273,7 @@ fun RegisterGamesScreen(
         }
 
         item {
+            // BENTO INFO CARDS
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 BentoCard(modifier = Modifier.weight(1f), title = "FAST LANE", value = "24h Review", icon = Icons.Default.RocketLaunch, iconTint = AccentCyan)
                 BentoCard(modifier = Modifier.weight(1f), title = "XP BONUS", value = "+500 Points", icon = Icons.Default.Star, iconTint = AccentPurple)

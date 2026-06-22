@@ -9,6 +9,6 @@ data class SolicitudJuego(
     @SerializedName("genero") val genero: String,
     @SerializedName("ano_lanzamiento") val anoLanzamiento: String,
     @SerializedName("descripcion") val descripcion: String,
-    @SerializedName("imagen_url") val imagenUrl: String = "https://api.vortexapp.com/images/placeholder.jpg",
+    @SerializedName("imagen_url") val imagenUrl: String? = null,
     @SerializedName("estado") val estado: String = "pendiente"
 )

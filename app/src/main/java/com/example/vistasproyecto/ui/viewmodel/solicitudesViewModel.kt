@@ -51,6 +51,7 @@ class SolicitudesViewModel : ViewModel() {
         genero: String,
         anoLanzamiento: String,
         descripcion: String,
+        imagenUrl: String,
         onSuccess: () -> Unit = {},
         onError: (String) -> Unit = {}
     ) {
@@ -63,7 +64,8 @@ class SolicitudesViewModel : ViewModel() {
                     tituloJuego = tituloJuego,
                     genero = genero,
                     anoLanzamiento = anoLanzamiento,
-                    descripcion = descripcion
+                    descripcion = descripcion,
+                    imagenUrl = imagenUrl
                 )
                 repository.createSolicitud(nuevaSolicitud)
                 fetchSolicitudes()
