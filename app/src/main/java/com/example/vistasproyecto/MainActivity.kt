@@ -35,6 +35,7 @@ import com.example.vistasproyecto.ui.screens.VortexTerminalScreen
 import com.example.vistasproyecto.ui.screens.VortexFeedScreen
 import com.example.vistasproyecto.ui.screens.TopGamesScreen
 import com.example.vistasproyecto.ui.screens.RegisterGamesScreen
+import com.example.vistasproyecto.ui.screens.ResenaJuegoScreen
 import com.example.vistasproyecto.ui.screens.AdminPanelScreen
 import com.example.vistasproyecto.ui.theme.VistasProyectoTheme
 
@@ -208,19 +209,28 @@ fun MainApp(
                 VortexTerminalScreen(navController = navController)
             }
             composable("top") {
-                TopGamesScreen()
+                TopGamesScreen(navController = navController)
             }
             composable("add") {
                 RegisterGamesScreen()
             }
             composable("feed") {
-                VortexFeedScreen()
+                VortexFeedScreen(navController = navController)
             }
             composable("profile") {
                 ProfileScreen(navController = navController)
             }
             composable("admin_panel") {
                 AdminPanelScreen(navController = navController)
+            }
+            composable("resena/{juegoId}/{titulo}") { backStackEntry ->
+                val juegoId = backStackEntry.arguments?.getString("juegoId") ?: ""
+                val titulo = backStackEntry.arguments?.getString("titulo") ?: ""
+                ResenaJuegoScreen(
+                    juegoId = juegoId,
+                    juegoTitulo = titulo,
+                    onBack = { navController.popBackStack() }
+                )
             }
         }
     }

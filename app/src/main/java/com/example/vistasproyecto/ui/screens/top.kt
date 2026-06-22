@@ -1,6 +1,7 @@
 package com.example.vistasproyecto.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -28,10 +29,12 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.example.vistasproyecto.data.model.Juego
 import com.example.vistasproyecto.ui.viewmodel.JuegosViewModel
+import androidx.navigation.NavController
 import java.util.Locale
 
 @Composable
 fun TopGamesScreen(
+    navController: NavController? = null,
     viewModel: JuegosViewModel = viewModel()
 ) {
     val juegos by viewModel.juegos.collectAsState()
@@ -57,7 +60,16 @@ fun TopGamesScreen(
                 if (sortedJuegos.isNotEmpty()) {
                     // Top 1
                     item {
-                        FeaturedGameCard(sortedJuegos[0], isLarge = true, rank = 1)
+                        FeaturedGameCard(
+                            sortedJuegos[0], 
+                            isLarge = true, 
+                            rank = 1,
+                            onClick = {
+                                sortedJuegos[0].id?.let { id ->
+                                    navController?.navigate("resena/$id/${sortedJuegos[0].titulo}")
+                                }
+                            }
+                        )
                     }
 
                     // Top 2 & 3
@@ -67,8 +79,26 @@ fun TopGamesScreen(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.spacedBy(16.dp)
                             ) {
-                                FeaturedGameCard(sortedJuegos[1], modifier = Modifier.weight(1f), rank = 2)
-                                FeaturedGameCard(sortedJuegos[2], modifier = Modifier.weight(1f), rank = 3)
+                                FeaturedGameCard(
+                                    sortedJuegos[1], 
+                                    modifier = Modifier.weight(1f), 
+                                    rank = 2,
+                                    onClick = {
+                                        sortedJuegos[1].id?.let { id ->
+                                            navController?.navigate("resena/$id/${sortedJuegos[1].titulo}")
+                                        }
+                                    }
+                                )
+                                FeaturedGameCard(
+                                    sortedJuegos[2], 
+                                    modifier = Modifier.weight(1f), 
+                                    rank = 3,
+                                    onClick = {
+                                        sortedJuegos[2].id?.let { id ->
+                                            navController?.navigate("resena/$id/${sortedJuegos[2].titulo}")
+                                        }
+                                    }
+                                )
                             }
                         }
                     }
@@ -77,7 +107,15 @@ fun TopGamesScreen(
                     val remainingJuegos = sortedJuegos.drop(if (sortedJuegos.size >= 3) 3 else 1)
                     itemsIndexed(remainingJuegos) { index, juego ->
                         val actualRank = if (sortedJuegos.size >= 3) index + 4 else index + 2
-                        GameListItem(juego, actualRank)
+                        GameListItem(
+                            juego, 
+                            actualRank,
+                            onClick = {
+                                juego.id?.let { id ->
+                                    navController?.navigate("resena/$id/${juego.titulo}")
+                                }
+                            }
+                        )
                     }
                 }
 
@@ -119,12 +157,14 @@ fun FeaturedGameCard(
     juego: Juego,
     modifier: Modifier = Modifier,
     isLarge: Boolean = false,
-    rank: Int
+    rank: Int,
+    onClick: () -> Unit = {}
 ) {
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .then(if (isLarge) Modifier.height(400.dp) else Modifier.height(250.dp)),
+            .then(if (isLarge) Modifier.height(400.dp) else Modifier.height(250.dp))
+            .clickable { onClick() },
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = CardColor),
     ) {
@@ -213,11 +253,12 @@ fun FeaturedGameCard(
 }
 
 @Composable
-fun GameListItem(juego: Juego, rank: Int) {
+fun GameListItem(juego: Juego, rank: Int, onClick: () -> Unit = {}) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(80.dp),
+            .height(80.dp)
+            .clickable { onClick() },
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = CardColor)
     ) {

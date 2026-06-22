@@ -1,6 +1,7 @@
 package com.example.vistasproyecto.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -22,12 +23,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.vistasproyecto.ui.viewmodel.JuegosViewModel
 import com.example.vistasproyecto.ui.viewmodel.UsuariosViewModel
 
 data class FeedItemUI(
-    val idCalificacion: String,
+    val juegoId: String,
     val userName: String,
     val userHandle: String,
     val rating: Double,
@@ -39,6 +41,7 @@ data class FeedItemUI(
 
 @Composable
 fun VortexFeedScreen(
+    navController: NavController? = null,
     juegosViewModel: JuegosViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
     usuariosViewModel: UsuariosViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 ) {
@@ -54,7 +57,7 @@ fun VortexFeedScreen(
             val usuarioAsignado = if (usuarios.isNotEmpty()) usuarios[index % usuarios.size] else null
 
             FeedItemUI(
-                idCalificacion = juego.id ?: index.toString(),
+                juegoId = juego.id ?: index.toString(),
                 userName = usuarioAsignado?.usuario ?: "GUEST_WARRIOR",
                 userHandle = "@${usuarioAsignado?.email?.split("@")?.first() ?: "vortex"}",
                 rating = juego.calificacionPromedio,
@@ -90,7 +93,12 @@ fun VortexFeedScreen(
                     FeaturedCard(
                         titulo = destacado?.titulo ?: "VORTEX INSTALADO",
                         descripcion = destacado?.descripcion ?: "Conecta tu API para cargar la base de datos cyberpunk en tiempo real.",
-                        imagenUrl = destacado?.imagenUrl ?: ""
+                        imagenUrl = destacado?.imagenUrl ?: "",
+                        onClick = {
+                            destacado?.id?.let { id ->
+                                navController?.navigate("resena/$id/${destacado.titulo}")
+                            }
+                        }
                     )
                 }
                 item {
@@ -98,7 +106,12 @@ fun VortexFeedScreen(
                 }
                 // Lista funcional e interactiva desde internet
                 items(feedItems) { item ->
-                    VortexFeedItem(item)
+                    VortexFeedItem(
+                        item = item,
+                        onReadMore = {
+                            navController?.navigate("resena/${item.juegoId}/${item.juegoTitulo}")
+                        }
+                    )
                 }
                 item {
                     Spacer(modifier = Modifier.height(100.dp))
@@ -109,13 +122,14 @@ fun VortexFeedScreen(
 }
 
 @Composable
-fun FeaturedCard(titulo: String, descripcion: String, imagenUrl: String) {
+fun FeaturedCard(titulo: String, descripcion: String, imagenUrl: String, onClick: () -> Unit = {}) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(220.dp)
             .clip(RoundedCornerShape(24.dp))
             .background(Color(0xFF2D2D2D))
+            .clickable { onClick() }
     ) {
         // Carga la portada del juego destacado como fondo
         if (imagenUrl.isNotBlank()) {
@@ -204,7 +218,7 @@ fun FilterSection() {
 }
 
 @Composable
-fun VortexFeedItem(item: FeedItemUI) {
+fun VortexFeedItem(item: FeedItemUI, onReadMore: () -> Unit) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Box(
             modifier = Modifier
@@ -212,6 +226,7 @@ fun VortexFeedItem(item: FeedItemUI) {
                 .height(240.dp)
                 .clip(RoundedCornerShape(24.dp))
                 .background(CardColor)
+                .clickable { onReadMore() }
         ) {
             // ASYNCIMAGE DESCARGA LA IMAGEN EN TIEMPO REAL DESDE LA URL ASIGNADA EN TU JSON
             AsyncImage(
@@ -327,23 +342,25 @@ fun VortexFeedItem(item: FeedItemUI) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(item.timeAgo, color = Color.Gray, fontSize = 13.sp)
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(vertical = 4.dp)
+            TextButton(
+                onClick = onReadMore,
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+                colors = ButtonDefaults.textButtonColors(contentColor = AccentCyan)
             ) {
-                Text(
-                    "Read More",
-                    color = AccentCyan,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Icon(
-                    Icons.AutoMirrored.Filled.ArrowForward,
-                    contentDescription = null,
-                    modifier = Modifier.size(16.dp),
-                    tint = AccentCyan
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        "READ MORE",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        letterSpacing = 1.sp
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Icon(
+                        Icons.AutoMirrored.Filled.ArrowForward,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
             }
         }
     }
