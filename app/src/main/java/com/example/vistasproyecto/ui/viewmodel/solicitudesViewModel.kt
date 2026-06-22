@@ -21,6 +21,10 @@ class SolicitudesViewModel : ViewModel() {
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
 
+    // Estado de éxito para notificar a la UI
+    private val _success = MutableStateFlow(false)
+    val success: StateFlow<Boolean> = _success
+
     init {
         fetchSolicitudes()
     }
@@ -40,10 +44,19 @@ class SolicitudesViewModel : ViewModel() {
         }
     }
 
-    // Esta función se activará al pulsar "SEND REQUEST"
-    fun addSolicitud(usuarioId: String, tituloJuego: String, genero: String, anoLanzamiento: String, descripcion: String) {
+    // Envía solicitud con callbacks de resultado
+    fun addSolicitud(
+        usuarioId: String,
+        tituloJuego: String,
+        genero: String,
+        anoLanzamiento: String,
+        descripcion: String,
+        onSuccess: () -> Unit = {},
+        onError: (String) -> Unit = {}
+    ) {
         viewModelScope.launch {
             _isLoading.value = true
+            _success.value = false
             try {
                 val nuevaSolicitud = SolicitudJuego(
                     usuarioId = usuarioId,
@@ -54,11 +67,19 @@ class SolicitudesViewModel : ViewModel() {
                 )
                 repository.createSolicitud(nuevaSolicitud)
                 fetchSolicitudes()
+                _success.value = true
+                onSuccess()
             } catch (e: Exception) {
-                _error.value = e.message
+                val msg = e.message ?: "Error al enviar la solicitud"
+                _error.value = msg
+                onError(msg)
             } finally {
                 _isLoading.value = false
             }
         }
+    }
+
+    fun clearSuccess() {
+        _success.value = false
     }
 }

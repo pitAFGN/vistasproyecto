@@ -7,8 +7,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitClient {
 
-    // ⚠️ REEMPLAZA ESTA URL POR LA QUE TE DE RENDER CUANDO TERMINE EL DESPLIEGUE
-    // Recuerda dejar el '/' al final, ya que Retrofit lo exige para las rutas relativas.
+
     private const val BASE_URL = "https://api-vortex.onrender.com/"
 
     private val logging = HttpLoggingInterceptor().apply {

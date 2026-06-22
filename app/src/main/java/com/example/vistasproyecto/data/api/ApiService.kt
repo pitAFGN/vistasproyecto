@@ -73,4 +73,5 @@ interface VortexApiService {
     // Tip de json-server: Permite traer solo las calificaciones pertenecientes a un juego específico
     @GET("calificaciones")
     suspend fun getCalificacionesPorJuego(@Query("juego_id") juegoId: String): List<Calificacion>
+
 }

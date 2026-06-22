@@ -20,17 +20,38 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
-// Colores personalizados basados en la imagen
-val BgColor = Color(0xFF0A0A0A)
-val CardColor = Color(0xFF121212)
-val AccentCyan = Color(0xFF4DD0E1)
-val AccentPurple = Color(0xFF6A1B9A)
-val TextGray = Color(0xFF9E9E9E)
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
+import com.example.vistasproyecto.data.SessionManager
+import com.example.vistasproyecto.ui.viewmodel.UsuariosViewModel
 
 @Composable
-fun VortexTerminalScreen() {
+fun VortexTerminalScreen(
+    navController: NavController,
+    viewModel: UsuariosViewModel = viewModel()
+) {
+    val currentUser by SessionManager.currentUser.collectAsState()
+
+    // Si ya hay sesión activa, redirigir a profile automáticamente
+    LaunchedEffect(currentUser) {
+        if (currentUser != null) {
+            navController.navigate("profile") {
+                popUpTo("home") { inclusive = false }
+                launchSingleTop = true
+            }
+        }
+    }
+
     var isLogin by remember { mutableStateOf(true) }
+    var identifier by remember { mutableStateOf("") }
+    var accessKey by remember { mutableStateOf("") }
+    var confirmKey by remember { mutableStateOf("") }
+    var username by remember { mutableStateOf("") }
+    var statusMessage by remember { mutableStateOf<String?>(null) }
+    var isSuccess by remember { mutableStateOf(false) }
+
+    val isLoading by viewModel.isLoading.collectAsState()
 
     LazyColumn(
         modifier = Modifier
@@ -44,10 +65,7 @@ fun VortexTerminalScreen() {
         contentPadding = PaddingValues(24.dp)
     ) {
         item {
-            // Reduced spacer because of TopAppBar
             Spacer(modifier = Modifier.height(20.dp))
-
-            // Header
             Text(
                 text = "VORTEX",
                 color = Color.White,
@@ -63,12 +81,10 @@ fun VortexTerminalScreen() {
                 letterSpacing = 2.sp,
                 textAlign = TextAlign.Center
             )
-
             Spacer(modifier = Modifier.height(60.dp))
         }
 
         item {
-            // Login/Register Card
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -77,13 +93,12 @@ fun VortexTerminalScreen() {
                     .padding(24.dp)
             ) {
                 Column {
+                    // Header
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         if (!isLogin) {
                             IconButton(
-                                onClick = { isLogin = true },
-                                modifier = Modifier
-                                    .size(32.dp)
-                                    .padding(end = 8.dp)
+                                onClick = { isLogin = true; statusMessage = null },
+                                modifier = Modifier.size(32.dp).padding(end = 8.dp)
                             ) {
                                 Icon(
                                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -99,60 +114,68 @@ fun VortexTerminalScreen() {
                             fontWeight = FontWeight.SemiBold
                         )
                     }
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = if (isLogin) "Enter your credentials to sync with the grid."
-                        else "Join the network to access the neural interface.",
-                        color = TextGray,
-                        fontSize = 14.sp
-                    )
+
+                    // Banner de estado
+                    statusMessage?.let { msg ->
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(
+                                    if (isSuccess) Color(0xFF1B5E20) else Color(0xFF7F0000),
+                                    RoundedCornerShape(8.dp)
+                                )
+                                .padding(12.dp)
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    imageVector = if (isSuccess) Icons.Default.CheckCircle else Icons.Default.Error,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(text = msg, color = Color.White, fontSize = 13.sp)
+                            }
+                        }
+                    }
 
                     Spacer(modifier = Modifier.height(32.dp))
 
-                    // Identifier Field
-                    var identifier by remember { mutableStateOf("") }
-                    Text(
-                        text = "IDENTIFIER",
-                        color = TextGray,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+                    // Campo USERNAME (solo en registro)
+                    if (!isLogin) {
+                        Text("USERNAME", color = TextGray, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        VortexTextField(
+                            value = username,
+                            onValueChange = { username = it },
+                            placeholder = "Xenon_Hunter",
+                            trailingIcon = { Icon(Icons.Default.Person, null, tint = TextGray) }
+                        )
+                        Spacer(modifier = Modifier.height(24.dp))
+                    }
+
+                    // Campo IDENTIFIER
+                    Text("EMAIL", color = TextGray, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                     Spacer(modifier = Modifier.height(8.dp))
                     VortexTextField(
                         value = identifier,
                         onValueChange = { identifier = it },
                         placeholder = "user@vortex.network",
-                        trailingIcon = {
-                            Icon(
-                                Icons.Default.AlternateEmail,
-                                contentDescription = null,
-                                tint = TextGray
-                            )
-                        }
+                        trailingIcon = { Icon(Icons.Default.AlternateEmail, null, tint = TextGray) }
                     )
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    // Access Key Field
-                    var accessKey by remember { mutableStateOf("") }
+                    // Campo ACCESS KEY
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            text = "ACCESS KEY",
-                            color = TextGray,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold
-                        )
+                        Text("PASSWORD", color = TextGray, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                         if (isLogin) {
-                            Text(
-                                text = "LOST ACCESS?",
-                                color = TextGray,
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.Bold
-                            )
+                            Text("LOST ACCESS?", color = TextGray, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                         }
                     }
                     Spacer(modifier = Modifier.height(8.dp))
@@ -161,69 +184,90 @@ fun VortexTerminalScreen() {
                         onValueChange = { accessKey = it },
                         placeholder = "********",
                         visualTransformation = PasswordVisualTransformation(),
-                        trailingIcon = {
-                            Icon(
-                                Icons.Default.Lock,
-                                contentDescription = null,
-                                tint = TextGray
-                            )
-                        }
+                        trailingIcon = { Icon(Icons.Default.Lock, null, tint = TextGray) }
                     )
 
+                    // Campo CONFIRM ACCESS KEY (solo en registro)
                     if (!isLogin) {
                         Spacer(modifier = Modifier.height(24.dp))
-                        // Confirm Access Key Field
-                        var confirmKey by remember { mutableStateOf("") }
-                        Text(
-                            text = "CONFIRM ACCESS KEY",
-                            color = TextGray,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold
-                        )
+                        Text("CONFIRM PASSWORD", color = TextGray, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                         Spacer(modifier = Modifier.height(8.dp))
                         VortexTextField(
                             value = confirmKey,
                             onValueChange = { confirmKey = it },
                             placeholder = "********",
                             visualTransformation = PasswordVisualTransformation(),
-                            trailingIcon = {
-                                Icon(
-                                    Icons.Default.Lock,
-                                    contentDescription = null,
-                                    tint = TextGray
-                                )
-                            }
+                            trailingIcon = { Icon(Icons.Default.Lock, null, tint = TextGray) }
                         )
                     }
 
                     Spacer(modifier = Modifier.height(32.dp))
 
-                    // Action Button
+                    // Botón principal
                     Button(
-                        onClick = { /* Handle action */ },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(56.dp),
+                        onClick = {
+                            statusMessage = null
+                            if (isLogin) {
+                                viewModel.loginUsuario(
+                                    email = identifier,
+                                    contrasena = accessKey,
+                                    onSuccess = {
+                                        // La redirección la maneja el LaunchedEffect(currentUser)
+                                    },
+                                    onError = { msg ->
+                                        statusMessage = msg
+                                        isSuccess = false
+                                    }
+                                )
+                            } else {
+                                when {
+                                    username.isBlank() -> { statusMessage = "El nombre de usuario no puede estar vacío."; isSuccess = false }
+                                    identifier.isBlank() -> { statusMessage = "El email no puede estar vacío."; isSuccess = false }
+                                    accessKey.length < 6 -> { statusMessage = "La contraseña debe tener al menos 6 caracteres."; isSuccess = false }
+                                    accessKey != confirmKey -> { statusMessage = "Las contraseñas no coinciden."; isSuccess = false }
+                                    else -> {
+                                        viewModel.registrarUsuario(
+                                            usuario = username,
+                                            email = identifier,
+                                            contrasena = accessKey,
+                                            onSuccess = {
+                                                statusMessage = "¡Cuenta creada! Ya puedes iniciar sesión."
+                                                isSuccess = true
+                                                isLogin = true
+                                                username = ""; identifier = ""; accessKey = ""; confirmKey = ""
+                                            },
+                                            onError = { msg -> statusMessage = msg; isSuccess = false }
+                                        )
+                                    }
+                                }
+                            }
+                        },
+                        enabled = !isLoading,
+                        modifier = Modifier.fillMaxWidth().height(56.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = AccentPurple),
                         shape = RoundedCornerShape(8.dp)
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                text = if (isLogin) "ESTABLISH CONNECTION" else "INITIALIZE REGISTRATION",
-                                fontWeight = FontWeight.Bold,
-                                letterSpacing = 1.sp
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Icon(
-                                if (isLogin) Icons.Default.Login else Icons.Default.VideogameAsset,
-                                contentDescription = null
-                            )
+                        if (isLoading) {
+                            CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                        } else {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = if (isLogin) "ESTABLISH CONNECTION" else "INITIALIZE REGISTRATION",
+                                    fontWeight = FontWeight.Bold,
+                                    letterSpacing = 1.sp
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Icon(
+                                    if (isLogin) Icons.Default.Login else Icons.Default.VideogameAsset,
+                                    contentDescription = null
+                                )
+                            }
                         }
                     }
 
                     Spacer(modifier = Modifier.height(32.dp))
 
-                    // Footer toggle INSIDE the card
+                    // Toggle Login / Registro
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.Center,
@@ -231,19 +275,19 @@ fun VortexTerminalScreen() {
                     ) {
                         Text(
                             text = if (isLogin) "New operative? " else "Already have access? ",
-                            color = TextGray,
-                            fontSize = 14.sp
+                            color = TextGray, fontSize = 14.sp
                         )
                         TextButton(
-                            onClick = { isLogin = !isLogin },
+                            onClick = {
+                                isLogin = !isLogin; statusMessage = null
+                                identifier = ""; accessKey = ""; confirmKey = ""; username = ""
+                            },
                             contentPadding = PaddingValues(0.dp),
                             modifier = Modifier.height(20.dp)
                         ) {
                             Text(
-                                text = if (isLogin) "REGISTER ACCOUNT" else "LOG IN",
-                                color = AccentCyan,
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Bold
+                                text = if (isLogin) "REGISTER" else "LOGIN",
+                                color = AccentCyan, fontSize = 14.sp, fontWeight = FontWeight.Bold
                             )
                         }
                     }
@@ -251,9 +295,7 @@ fun VortexTerminalScreen() {
             }
         }
 
-        item {
-            Spacer(modifier = Modifier.height(40.dp))
-        }
+        item { Spacer(modifier = Modifier.height(40.dp)) }
     }
 }
 
@@ -287,7 +329,11 @@ fun VortexTextField(
 }
 
 @Composable
-fun ExternalNodeButton(text: String, icon: androidx.compose.ui.graphics.vector.ImageVector, modifier: Modifier = Modifier) {
+fun ExternalNodeButton(
+    text: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    modifier: Modifier = Modifier
+) {
     OutlinedButton(
         onClick = { },
         modifier = modifier.height(48.dp),
@@ -304,5 +350,5 @@ fun ExternalNodeButton(text: String, icon: androidx.compose.ui.graphics.vector.I
 @Preview
 @Composable
 fun VortexTerminalPreview() {
-    VortexTerminalScreen()
+    VortexTerminalScreen(navController = rememberNavController())
 }

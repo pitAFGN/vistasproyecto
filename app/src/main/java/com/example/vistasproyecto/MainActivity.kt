@@ -10,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -22,6 +23,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.vistasproyecto.data.SessionManager
 import com.example.vistasproyecto.ui.screens.AccentCyan
 import com.example.vistasproyecto.ui.screens.BgColor
 import com.example.vistasproyecto.ui.screens.CardColor
@@ -50,18 +52,29 @@ fun MainApp() {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
+    val currentUser by SessionManager.currentUser.collectAsState()
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
                     Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                        Text(
-                            "VORTEX",
-                            color = Color.White,
-                            fontWeight = FontWeight.Bold,
-                            letterSpacing = 2.sp
-                        )
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                "VORTEX",
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 2.sp
+                            )
+                            if (currentUser != null) {
+                                Text(
+                                    currentUser?.usuario?.uppercase() ?: "",
+                                    color = AccentCyan,
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
                     }
                 },
                 navigationIcon = {
@@ -74,9 +87,7 @@ fun MainApp() {
                         Icon(Icons.Default.Search, contentDescription = "Search", tint = Color.White)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = BgColor
-                )
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = BgColor)
             )
         },
         bottomBar = {
@@ -85,14 +96,13 @@ fun MainApp() {
                 tonalElevation = 0.dp,
                 modifier = Modifier.height(70.dp)
             ) {
-                // HOME / TERMINAL
                 NavigationBarItem(
                     selected = currentRoute == "home",
-                    onClick = { 
-                        navController.navigate("home") { 
+                    onClick = {
+                        navController.navigate("home") {
                             popUpTo(navController.graph.startDestinationId)
-                            launchSingleTop = true 
-                        } 
+                            launchSingleTop = true
+                        }
                     },
                     icon = { Icon(Icons.Default.Home, contentDescription = "Home", modifier = Modifier.size(26.dp)) },
                     colors = NavigationBarItemDefaults.colors(
@@ -101,23 +111,22 @@ fun MainApp() {
                         indicatorColor = Color.Transparent
                     )
                 )
-                
-                // TOP RANKED (Trophy Icon)
+
                 NavigationBarItem(
                     selected = currentRoute == "top",
-                    onClick = { 
-                        navController.navigate("top") { 
+                    onClick = {
+                        navController.navigate("top") {
                             popUpTo(navController.graph.startDestinationId)
-                            launchSingleTop = true 
-                        } 
+                            launchSingleTop = true
+                        }
                     },
-                    icon = { 
+                    icon = {
                         Icon(
-                            Icons.Default.EmojiEvents, 
-                            contentDescription = "Top", 
+                            Icons.Default.EmojiEvents,
+                            contentDescription = "Top",
                             modifier = Modifier.size(26.dp),
                             tint = if (currentRoute == "top") AccentCyan else Color.Gray
-                        ) 
+                        )
                     },
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = AccentCyan,
@@ -126,14 +135,13 @@ fun MainApp() {
                     )
                 )
 
-                // ADD
                 NavigationBarItem(
                     selected = currentRoute == "add",
-                    onClick = { 
-                        navController.navigate("add") { 
+                    onClick = {
+                        navController.navigate("add") {
                             popUpTo(navController.graph.startDestinationId)
-                            launchSingleTop = true 
-                        } 
+                            launchSingleTop = true
+                        }
                     },
                     icon = { Icon(Icons.Default.Add, contentDescription = "Add", modifier = Modifier.size(26.dp)) },
                     colors = NavigationBarItemDefaults.colors(
@@ -143,21 +151,20 @@ fun MainApp() {
                     )
                 )
 
-                // FEED (List Icon)
                 NavigationBarItem(
                     selected = currentRoute == "feed",
-                    onClick = { 
-                        navController.navigate("feed") { 
+                    onClick = {
+                        navController.navigate("feed") {
                             popUpTo(navController.graph.startDestinationId)
-                            launchSingleTop = true 
-                        } 
+                            launchSingleTop = true
+                        }
                     },
-                    icon = { 
+                    icon = {
                         Icon(
-                            Icons.Default.FormatListBulleted, 
-                            contentDescription = "Feed", 
+                            Icons.Default.FormatListBulleted,
+                            contentDescription = "Feed",
                             modifier = Modifier.size(26.dp)
-                        ) 
+                        )
                     },
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = Color.White,
@@ -166,14 +173,13 @@ fun MainApp() {
                     )
                 )
 
-                // PROFILE
                 NavigationBarItem(
                     selected = currentRoute == "profile",
-                    onClick = { 
-                        navController.navigate("profile") { 
+                    onClick = {
+                        navController.navigate("profile") {
                             popUpTo(navController.graph.startDestinationId)
-                            launchSingleTop = true 
-                        } 
+                            launchSingleTop = true
+                        }
                     },
                     icon = { Icon(Icons.Default.Person, contentDescription = "Profile", modifier = Modifier.size(26.dp)) },
                     colors = NavigationBarItemDefaults.colors(
@@ -191,7 +197,7 @@ fun MainApp() {
             modifier = Modifier.padding(innerPadding)
         ) {
             composable("home") {
-                VortexTerminalScreen()
+                VortexTerminalScreen(navController = navController)
             }
             composable("top") {
                 TopGamesScreen()
@@ -203,7 +209,7 @@ fun MainApp() {
                 VortexFeedScreen()
             }
             composable("profile") {
-                ProfileScreen()
+                ProfileScreen(navController = navController)
             }
         }
     }
@@ -216,3 +222,4 @@ fun GreetingPreview() {
         MainApp()
     }
 }
+

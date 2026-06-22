@@ -2,6 +2,7 @@ package com.example.vistasproyecto.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.vistasproyecto.data.SessionManager
 import com.example.vistasproyecto.data.api.RetrofitClient
 import com.example.vistasproyecto.data.model.User
 import com.example.vistasproyecto.data.repository.UsuariosRepository
@@ -40,8 +41,13 @@ class UsuariosViewModel : ViewModel() {
         }
     }
 
-    // Utilizado para el Formulario de Registro en Vortex
-    fun registrarUsuario(usuario: String, email: String, contrasena: String) {
+    fun registrarUsuario(
+        usuario: String,
+        email: String,
+        contrasena: String,
+        onSuccess: () -> Unit = {},
+        onError: (String) -> Unit = {}
+    ) {
         viewModelScope.launch {
             _isLoading.value = true
             try {
@@ -53,11 +59,48 @@ class UsuariosViewModel : ViewModel() {
                 )
                 repository.createUser(nuevoUsuario)
                 fetchUsuarios()
+                onSuccess()
             } catch (e: Exception) {
-                _error.value = e.message
+                val msg = e.message ?: "Error al registrar el usuario"
+                _error.value = msg
+                onError(msg)
             } finally {
                 _isLoading.value = false
             }
         }
+    }
+
+    fun loginUsuario(
+        email: String,
+        contrasena: String,
+        onSuccess: () -> Unit = {},
+        onError: (String) -> Unit = {}
+    ) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                val coincidencias = repository.getUserByEmail(email)
+                val usuario = coincidencias.firstOrNull { it.email == email }
+                when {
+                    usuario == null -> onError("No existe una cuenta con ese email.")
+                    usuario.contrasena != contrasena -> onError("Contraseña incorrecta.")
+                    else -> {
+                        _error.value = null
+                        SessionManager.login(usuario)   // ← guarda la sesión
+                        onSuccess()
+                    }
+                }
+            } catch (e: Exception) {
+                val msg = e.message ?: "Error al conectar con el servidor"
+                _error.value = msg
+                onError(msg)
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun logout() {
+        SessionManager.logout()
     }
 }
